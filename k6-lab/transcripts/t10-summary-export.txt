@@ -1,0 +1,29 @@
+$ k6 run --summary-export summary.json k6-lab/scripts/thresholds-pass.js
+(the run itself is transcript t04; this is the file it leaves)
+
+$ jq ".metrics.http_req_duration" summary.json
+{
+  "min": 0.220711,
+  "med": 222.21087450000002,
+  "max": 443.831113,
+  "p(90)": 442.5152176,
+  "p(95)": 442.90136090000004,
+  "avg": 221.62008466666663,
+  "thresholds": {
+    "p(95)<1000": false
+  }
+}
+
+$ jq ".metrics.http_req_failed, .root_group.checks" summary.json
+{
+  "passes": 0,
+  "fails": 42,
+  "thresholds": {
+    "rate<0.01": false
+  },
+  "value": 0
+}
+[
+  "fast: status is 200",
+  "slow: status is 200"
+]

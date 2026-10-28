@@ -1,0 +1,5 @@
+$ sha256sum -c checksums.txt   (the release checksum file)
+k6-v2.3.0-linux-amd64.tar.gz: OK
+
+$ k6 version
+k6 v2.3.0 (commit/e088784614, go1.26.8, linux/amd64)

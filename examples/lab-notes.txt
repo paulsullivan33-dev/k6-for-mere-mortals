@@ -1,0 +1,109 @@
+The lab — one real install, one machine, nobody else's load
+====================================================================
+
+The lab is k6 as the project ships it,
+on the build machine (an Ubuntu 24.04
+sandbox, 2 CPUs, 7.7 GB RAM):
+
+  * k6 v2.3.0 (commit e088784614), the
+    official linux-amd64 release tarball
+    from grafana/k6, verified against the
+    release's published checksums
+    (sha256sum -c: OK) before it ran.
+  * A fixture server written for the
+    guide (k6-lab/server/fixture_server.py,
+    Python 3.12.3, standard library only),
+    listening on 127.0.0.1:18090, with
+    endpoints of known behaviour:
+    /fast answers at once, /slow waits
+    0.4 s, /flaky returns 500 for every
+    fourth request, /stats counts what
+    each endpoint has served.
+  * Every request in every run went from
+    the lab to the lab, on loopback. No
+    other system was load-tested, or
+    tested at all. Loads were kept tiny
+    on purpose — at most 5 virtual
+    users, at most 24 seconds — because
+    the machine is shared; chapter 13
+    says what that means for the numbers.
+
+What the lab ran, in
+k6-lab/transcripts/:
+
+  * t00 the checksum verification and
+    k6 version.
+  * t01 the fixture probed by hand:
+    /slow measured at 0.401 s, /flaky
+    answering 200 200 200 500 200.
+  * t02 first-test.js: 3 VUs, 10 s,
+    21 iterations, 42 requests, 84
+    checks. The planted impossible check
+    (under 100 ms from /slow) failed
+    21/21; the rest passed; exit code 0.
+  * t03 stages.js: 0->5->5->0 VUs over
+    24 s; 170 iterations, 170 checks,
+    all passed; vus min 1, max 5.
+  * t04 thresholds-pass.js: thresholds
+    on checks, http_req_duration and
+    http_req_failed all ticked
+    (p(95) = 442 ms against a 1000 ms
+    line); exit code 0.
+  * t05 thresholds-fail.js: both lines
+    crossed (p(95) 442.21 ms vs 100;
+    failure rate 11.90% vs 5%), the
+    crossed-thresholds error line, and
+    exit code 99. Note the 11.90%:
+    http_req_failed counts all 42
+    requests, only half of which went
+    to the failing endpoint.
+  * t06 scenarios.js: browsing
+    (constant-vus, 2 VUs) and checkout
+    (ramping-vus, 0->3->0) at once;
+    groups in both; custom Trend and
+    Counter in the CUSTOM section;
+    lab_flaky_requests = 14. The
+    fixture's /stats afterwards:
+    /flaky 40 = 5 hand probes + 21 (t05)
+    + 14 (t06); /slow 78 across t01-t06.
+    The two sides' bookkeeping agrees.
+  * t07 the scenarios run again with
+    --summary-mode=full: a SCENARIO
+    section each, GROUP blocks beneath,
+    and the timing sub-metrics
+    (blocked, connecting, waiting,
+    receiving, ...) the compact summary
+    folds away.
+  * t08 first-test.js with --out json:
+    582 lines, 16 Metric declarations,
+    566 Points; read back with jq —
+    points counted, metrics listed with
+    types, single points lifted whole.
+    (First attempt at one jq query
+    failed: a Metric line keeps its
+    name under .data, not beside .type.
+    The corrected queries are the ones
+    in the transcript.)
+  * t09 k6 inspect on scenarios.js:
+    the resolved options, executors and
+    stages as k6 understood them.
+  * t10 --summary-export on the passing
+    thresholds script: aggregates per
+    metric, and the thresholds map —
+    "p(95)<1000": false, false meaning
+    not crossed.
+
+Documented only (one machine, one
+loopback target): Grafana Cloud k6 and
+hosted dashboards; distributed runs
+across several generators; the
+arrival-rate executors and the open
+model beyond explaining it; the browser
+module, WebSocket and gRPC work, and
+xk6 extensions; setup()/teardown();
+POST bodies and environment secrets in
+chapter 12's patterns (the fixture
+speaks GET only); handleSummary(); and
+the neighbours of chapter 12,
+characterised from their documentation
+rather than run.

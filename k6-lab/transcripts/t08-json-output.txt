@@ -1,0 +1,35 @@
+$ k6 run --out json=k6-results.json k6-lab/scripts/first-test.js
+exit code: 0
+
+$ wc -l k6-results.json
+582
+
+$ head -2 k6-results.json
+{"type":"Metric","data":{"name":"http_reqs","type":"counter","contains":"default","thresholds":[],"submetrics":null},"metric":"http_reqs"}
+{"metric":"http_reqs","type":"Point","data":{"time":"2026-10-28T12:11:05.901713575Z","value":1,"tags":{"expected_response":"true","group":"","method":"GET","name":"http://127.0.0.1:18090/fast","proto":"HTTP/1.1","scenario":"default","status":"200","url":"http://127.0.0.1:18090/fast"}}}
+
+$ jq -s "map(select(.type==\"Point\")) | length" k6-results.json
+566
+
+$ jq -c "select(.type==\"Point\" and .metric==\"http_req_duration\")" k6-results.json | head -3
+{"metric":"http_req_duration","type":"Point","data":{"time":"2026-10-28T12:11:05.901713575Z","value":13.559269,"tags":{"expected_response":"true","group":"","method":"GET","name":"http://127.0.0.1:18090/fast","proto":"HTTP/1.1","scenario":"default","status":"200","url":"http://127.0.0.1:18090/fast"}}}
+{"metric":"http_req_duration","type":"Point","data":{"time":"2026-10-28T12:11:05.907295558Z","value":19.178888,"tags":{"expected_response":"true","group":"","method":"GET","name":"http://127.0.0.1:18090/fast","proto":"HTTP/1.1","scenario":"default","status":"200","url":"http://127.0.0.1:18090/fast"}}}
+{"metric":"http_req_duration","type":"Point","data":{"time":"2026-10-28T12:11:05.907951832Z","value":19.809103,"tags":{"expected_response":"true","group":"","method":"GET","name":"http://127.0.0.1:18090/fast","proto":"HTTP/1.1","scenario":"default","status":"200","url":"http://127.0.0.1:18090/fast"}}}
+
+$ jq -r "select(.type==\"Metric\") | .data.name + \" (\" + .data.type + \")\"" k6-results.json | sort -u
+checks (rate)
+data_received (counter)
+data_sent (counter)
+http_req_blocked (trend)
+http_req_connecting (trend)
+http_req_duration (trend)
+http_req_failed (rate)
+http_req_receiving (trend)
+http_req_sending (trend)
+http_req_tls_handshaking (trend)
+http_req_waiting (trend)
+http_reqs (counter)
+iteration_duration (trend)
+iterations (counter)
+vus (gauge)
+vus_max (gauge)

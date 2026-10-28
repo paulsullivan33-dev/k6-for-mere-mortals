@@ -1,0 +1,108 @@
+$ k6 run k6-lab/scripts/scenarios.js
+
+         /\      Grafana   /‾‾/  
+    /\  /  \     |\  __   /  /   
+   /  \/    \    | |/ /  /   ‾‾\ 
+  /          \   |   (  |  (‾)  |
+ / __________ \  |_|\_\  \_____/ 
+
+
+     execution: local
+        script: k6-lab/scripts/scenarios.js
+        output: -
+
+     scenarios: (100.00%) 2 scenarios, 5 max VUs, 42s max duration (incl. graceful stop):
+              * browsing: 2 looping VUs for 12s (exec: browsing, gracefulStop: 30s)
+              * checkout: Up to 3 looping VUs for 12s over 2 stages (gracefulRampDown: 30s, exec: checkout, gracefulStop: 30s)
+
+
+running (01.0s), 2/5 VUs, 0 complete and 0 interrupted iterations
+browsing   [   8% ] 2 VUs    01.0s/12s
+checkout   [   8% ] 0/3 VUs  01.0s/12.0s
+
+running (02.0s), 2/5 VUs, 2 complete and 0 interrupted iterations
+browsing   [  17% ] 2 VUs    02.0s/12s
+checkout   [  17% ] 0/3 VUs  02.0s/12.0s
+
+running (03.0s), 3/5 VUs, 4 complete and 0 interrupted iterations
+browsing   [  25% ] 2 VUs    03.0s/12s
+checkout   [  25% ] 1/3 VUs  03.0s/12.0s
+
+running (04.0s), 3/5 VUs, 7 complete and 0 interrupted iterations
+browsing   [  33% ] 2 VUs    04.0s/12s
+checkout   [  33% ] 1/3 VUs  04.0s/12.0s
+
+running (05.0s), 4/5 VUs, 10 complete and 0 interrupted iterations
+browsing   [  42% ] 2 VUs    05.0s/12s
+checkout   [  42% ] 2/3 VUs  05.0s/12.0s
+
+running (06.0s), 4/5 VUs, 13 complete and 0 interrupted iterations
+browsing   [  50% ] 2 VUs    06.0s/12s
+checkout   [  50% ] 2/3 VUs  06.0s/12.0s
+
+running (07.0s), 5/5 VUs, 17 complete and 0 interrupted iterations
+browsing   [  58% ] 2 VUs    07.0s/12s
+checkout   [  58% ] 3/3 VUs  07.0s/12.0s
+
+running (08.0s), 5/5 VUs, 21 complete and 0 interrupted iterations
+browsing   [  67% ] 2 VUs    08.0s/12s
+checkout   [  67% ] 3/3 VUs  08.0s/12.0s
+
+running (09.0s), 4/5 VUs, 25 complete and 0 interrupted iterations
+browsing   [  75% ] 2 VUs    09.0s/12s
+checkout   [  75% ] 2/3 VUs  09.0s/12.0s
+
+running (10.0s), 4/5 VUs, 29 complete and 0 interrupted iterations
+browsing   [  83% ] 2 VUs    10.0s/12s
+checkout   [  83% ] 2/3 VUs  10.0s/12.0s
+
+running (11.0s), 4/5 VUs, 32 complete and 0 interrupted iterations
+browsing   [  92% ] 2 VUs    11.0s/12s
+checkout   [  92% ] 2/3 VUs  11.0s/12.0s
+
+running (12.0s), 3/5 VUs, 35 complete and 0 interrupted iterations
+browsing   [ 100% ] 2 VUs    12.0s/12s
+checkout   [ 100% ] 1/3 VUs  12.0s/12.0s
+
+
+  █ TOTAL RESULTS 
+
+    checks_total.......: 52     4.154954/s
+    checks_succeeded...: 92.30% 48 out of 52
+    checks_failed......: 7.69%  4 out of 52
+
+    ✓ fast: status is 200
+    ✓ slow: status is 200
+    ✗ flaky: status is 200
+      ↳  71% — ✓ 10 / ✗ 4
+
+    CUSTOM
+    lab_flaky_requests.............: 14     1.118642/s
+    lab_slow_duration..............: avg=400.953811 min=400.669932 med=400.912331 max=401.583092 p(90)=401.080183 p(95)=401.275043
+
+    HTTP
+    http_req_duration..............: avg=94.65ms    min=462.92µs   med=40.84ms    max=401.58ms   p(90)=400.88ms   p(95)=400.96ms  
+      { expected_response:true }...: avg=97.61ms    min=462.92µs   med=40.82ms    max=401.58ms   p(90)=400.9ms    p(95)=400.97ms  
+    http_req_failed................: 5.26%  4 out of 76
+    http_reqs......................: 76     6.072626/s
+
+    EXECUTION
+    iteration_duration.............: avg=1.19s      min=1.04s      med=1.04s      max=1.44s      p(90)=1.44s      p(95)=1.44s     
+    iterations.....................: 38     3.036313/s
+    vus............................: 3      min=2       max=5
+    vus_max........................: 5      min=5       max=5
+
+    NETWORK
+    data_received..................: 14 kB  1.1 kB/s
+    data_sent......................: 5.6 kB 449 B/s
+
+
+
+
+running (12.5s), 0/5 VUs, 38 complete and 0 interrupted iterations
+browsing ✓ [ 100% ] 2 VUs    12s
+checkout ✓ [ 100% ] 0/3 VUs  12s
+exit code: 0
+
+$ curl -s http://127.0.0.1:18090/stats
+{"/": 26, "/fast": 237, "/slow": 78, "/flaky": 40, "/stats": 2}

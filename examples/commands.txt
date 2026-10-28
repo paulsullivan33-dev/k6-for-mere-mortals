@@ -1,0 +1,95 @@
+k6 — the distilled commands
+====================================================================
+Placeholders: <script.js> is one of your
+test scripts. The lab's scripts live in
+k6-lab/scripts/ and aim at the fixture
+server, 127.0.0.1:18090.
+
+FIRST CONTACT (chapters 3-4)
+--------------------------------------------------------------------
+  # verify the download, then ask the version:
+  grep linux-amd64.tar.gz *checksums.txt | sha256sum -c -
+  k6 version                       # this guide: v2.3.0
+
+  # the lab target, in its own terminal:
+  python3 k6-lab/server/fixture_server.py
+  curl -s http://127.0.0.1:18090/fast
+  curl -s http://127.0.0.1:18090/stats
+                                   # the server's own counts,
+                                   # for cross-checking k6
+
+RUNNING (chapters 4, 7)
+--------------------------------------------------------------------
+  k6 run <script.js>
+  k6 run --vus 1 --duration 10s <script.js>
+                                   # smoke shape: one user,
+                                   # briefly (chapter 12)
+  k6 inspect <script.js>           # the options k6 resolved,
+                                   # before anything runs
+
+  # the options object, in the script:
+  #   vus + duration               fixed crowd, fixed time
+  #   vus + iterations             fixed crowd, fixed count
+  #   stages: [{duration, target}] a crowd that changes
+
+READING THE RUN (chapters 5-6)
+--------------------------------------------------------------------
+  # in the summary, in order:
+  #   THRESHOLDS    the verdict lines, ticked or crossed
+  #   TOTAL RESULTS checks first, then HTTP / EXECUTION /
+  #                 NETWORK / CUSTOM families
+  #   med and p(95), not avg, are the honest centre
+  k6 run --summary-mode=full <script.js>
+                                   # per-scenario and per-group
+                                   # sections, sub-timings shown
+  k6 run --summary-mode=compact <script.js>
+                                   # the default: totals only
+
+CHECKS, THRESHOLDS, VERDICTS (chapters 6, 8)
+--------------------------------------------------------------------
+  # inside the test function:
+  #   check(res, { 'name': (r) => r.status === 200 })
+  #   group('step name', () => { ... })
+  # in options:
+  #   thresholds: {
+  #     http_req_duration: ['p(95)<1000'],
+  #     http_req_failed:   ['rate<0.01'],
+  #     checks:            ['rate>0.95'],
+  #   }
+  # failed checks alone -> exit 0
+  # a crossed threshold  -> exit 99
+  echo $?                          # read the verdict
+
+METRICS AND OUTPUTS (chapter 9)
+--------------------------------------------------------------------
+  # import { Trend, Counter, Rate, Gauge } from 'k6/metrics'
+  k6 run --out json=results.json <script.js>
+                                   # every point, one JSON
+                                   # object per line
+  jq -s 'map(select(.type=="Point")) | length' results.json
+  jq -r 'select(.type=="Metric") |
+    .data.name + " (" + .data.type + ")"' results.json
+  k6 run --summary-export summary.json <script.js>
+                                   # the verdict as JSON;
+                                   # thresholds map: false = passed
+
+SCENARIOS (chapter 10)
+--------------------------------------------------------------------
+  # in options, one block per workload:
+  #   scenarios: {
+  #     browsing: { executor: 'constant-vus',
+  #                 vus: 2, duration: '12s', exec: 'browsing' },
+  #     checkout: { executor: 'ramping-vus', startVUs: 0,
+  #                 stages: [...], exec: 'checkout' },
+  #   }
+  # arrival-rate executors exist for the open model;
+  # this guide names them and does not run them (chapter 13)
+
+HOUSEKEEPING (chapters 1, 13)
+--------------------------------------------------------------------
+  # test only systems you own, or have explicit
+  # permission to test — a bigger crowd is one
+  # number away, which is the point of the rule
+  # keep scripts under version control with the
+  # code they test; keep secrets in the environment
+  # (__ENV.NAME), never in the script

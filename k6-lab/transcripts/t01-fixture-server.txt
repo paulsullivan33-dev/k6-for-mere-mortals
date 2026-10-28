@@ -1,0 +1,16 @@
+$ python3 k6-lab/server/fixture_server.py
+fixture server listening on http://127.0.0.1:18090
+
+$ curl -s http://127.0.0.1:18090/
+fixture server: /fast /slow /flaky /stats
+$ curl -s http://127.0.0.1:18090/fast
+{"endpoint": "fast", "ok": true}
+
+$ curl -s -w "  (took %{time_total}s)" http://127.0.0.1:18090/slow
+{"endpoint": "slow", "ok": true}  (took 0.401140s)
+
+$ for i in 1 2 3 4 5; do curl -s -o /dev/null -w "%{http_code} " http://127.0.0.1:18090/flaky; done
+200 200 200 500 200 
+
+$ curl -s http://127.0.0.1:18090/stats
+{"/": 2, "/fast": 1, "/slow": 1, "/flaky": 5, "/stats": 1}
